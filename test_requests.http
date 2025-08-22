@@ -1,0 +1,53 @@
+### Health Check
+GET http://localhost:5000/health
+
+### API Information
+GET http://localhost:5000/
+
+### Test Simple Addition
+POST http://localhost:5000/process-homework
+Content-Type: application/json
+
+{
+  "problem_text": "25 + 17"
+}
+
+### Word Problem
+POST http://localhost:5000/process-homework
+Content-Type: application/json
+
+{
+  "problem_text": "I have 20 candies and give 7 to my sister. How many are left?"
+}
+
+### Multiplication
+POST http://localhost:5000/process-homework
+Content-Type: application/json
+
+{
+  "problem_text": "6 × 4"
+}
+
+### Test Division
+POST http://localhost:5000/process-homework
+Content-Type: application/json
+
+{
+  "problem_text": "24 ÷ 6"
+}
+
+### Test Edge Case - Non-Math Question
+POST http://localhost:5000/process-homework
+Content-Type: application/json
+
+{
+  "problem_text": "What is the weather today?"
+}
+
+### Test Error Case - Division by Zero
+POST http://localhost:5000/process-homework
+Content-Type: application/json
+
+{
+  "problem_text": "25 ÷ 0"
+}

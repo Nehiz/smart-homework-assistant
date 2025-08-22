@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧮 Smart Homework Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #4a5568;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .emoji-row {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .input-section {
+            margin-bottom: 25px;
+        }
+
+        .input-section label {
+            display: block;
+            color: #4a5568;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .math-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            border: 3px solid #e2e8f0;
+            border-radius: 15px;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: 'Comic Sans MS', cursive;
+        }
+
+        .math-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .example-problems {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .example-problems h3 {
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .examples {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .example-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            font-family: 'Comic Sans MS', cursive;
+        }
+
+        .example-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .solve-btn {
+            width: 100%;
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 1.3em;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Comic Sans MS', cursive;
+            margin-bottom: 20px;
+        }
+
+        .solve-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(72, 187, 120, 0.3);
+        }
+
+        .solve-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-size: 1.2em;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .result-section {
+            display: none;
+            background: linear-gradient(135deg, #e6fffa 0%, #f0fff4 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 25px;
+            border-left: 5px solid #48bb78;
+        }
+
+        .result-header {
+            color: #2d3748;
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .analysis-section {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 2px solid #e6fffa;
+        }
+
+        .guidance-section {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .steps-list {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .steps-list ol {
+            padding-left: 20px;
+        }
+
+        .steps-list li {
+            margin-bottom: 8px;
+            color: #4a5568;
+            line-height: 1.5;
+        }
+
+        .tip-box {
+            background: linear-gradient(45deg, #fed7d7, #fbb6ce);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #e53e3e;
+        }
+
+        .encouragement {
+            text-align: center;
+            font-size: 1.3em;
+            color: #38a169;
+            font-weight: bold;
+            margin-top: 15px;
+            padding: 15px;
+            background: linear-gradient(45deg, #c6f6d5, #9ae6b4);
+            border-radius: 15px;
+        }
+
+        .error-section {
+            display: none;
+            background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 25px;
+            border-left: 5px solid #e53e3e;
+            color: #742a2a;
+        }
+
+        .clear-btn {
+            background: #718096;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            font-family: 'Comic Sans MS', cursive;
+        }
+
+        .clear-btn:hover {
+            background: #4a5568;
+            transform: translateY(-2px);
+        }
+
+        .footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                margin: 10px 0;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .examples {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧮 Smart Homework Assistant</h1>
+            <div class="emoji-row">📚 ✨ 🎯 ✨ 📚</div>
+            <p>I'll help you learn math step by step!</p>
+        </div>
+
+        <div class="input-section">
+            <label for="mathProblem">📝 Type your math problem here:</label>
+            <textarea id="mathProblem" class="math-input"
+                placeholder="Try: 25 + 17 or 'I have 20 candies and give 5 away. How many are left?'"
+                rows="3"></textarea>
+        </div>
+
+        <div class="example-problems">
+            <h3>💡 Try these example problems:</h3>
+            <div class="examples">
+                <button class="example-btn" onclick="setExample('15 + 8')">15 + 8</button>
+                <button class="example-btn" onclick="setExample('50 - 23')">50 - 23</button>
+                <button class="example-btn" onclick="setExample('6 × 4')">6 × 4</button>
+                <button class="example-btn" onclick="setExample('24 ÷ 6')">24 ÷ 6</button>
+                <button class="example-btn" onclick="setExample('I have 12 apples and eat 3. How many are left?')">Word
+                    Problem</button>
+            </div>
+        </div>
+
+        <button class="solve-btn" onclick="solveProblem()">
+            🚀 Help Me Learn This Problem!
+        </button>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>🤔 Thinking about your problem...</p>
+        </div>
+
+        <div class="result-section" id="results">
+            <div class="result-header">
+                <span>🎓</span>
+                <span>Here's how to think about this problem:</span>
+            </div>
+
+            <div class="analysis-section" id="analysis">
+                <!-- Analysis will be populated here -->
+            </div>
+
+            <div class="guidance-section" id="guidance">
+                <!-- Educational guidance will be populated here -->
+            </div>
+
+            <div class="encouragement" id="encouragement">
+                <!-- Encouragement message -->
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="clear-btn" onclick="clearResults()">
+                    🔄 Try Another Problem
+                </button>
+            </div>
+        </div>
+
+        <div class="error-section" id="error">
+            <!-- Error messages will be shown here -->
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Created by NeHis - A Pioneer AI Academy Intern | Focus: Abacus & Mental Math Education</p>
+    </div>
+
+    <script>
+        // Set example problem
+        function setExample(problem) {
+            document.getElementById('mathProblem').value = problem;
+            document.getElementById('mathProblem').focus();
+        }
+
+        // Clear results and reset form
+        function clearResults() {
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('mathProblem').value = '';
+            document.getElementById('mathProblem').focus();
+        }
+
+        // Main function to solve problem
+        async function solveProblem() {
+            const problemText = document.getElementById('mathProblem').value.trim();
+
+            if (!problemText) {
+                alert('Please enter a math problem first! 📝');
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            document.querySelector('.solve-btn').disabled = true;
+
+            try {
+                const response = await fetch('http://localhost:5000/process-homework', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        problem_text: problemText
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    displayResults(data);
+                } else {
+                    displayError(data);
+                }
+
+            } catch (error) {
+                displayError({
+                    error: 'Connection Error',
+                    message: 'Could not connect to the homework assistant. Make sure the server is running!',
+                    suggestion: 'Check that your local server is running on http://localhost:5000'
+                });
+            } finally {
+                // Hide loading state
+                document.getElementById('loading').style.display = 'none';
+                document.querySelector('.solve-btn').disabled = false;
+            }
+        }
+
+        // Display successful results
+        function displayResults(data) {
+            const analysis = data.analysis || {};
+            const guidance = data.educational_guidance || {};
+
+            // Analysis section
+            const analysisHtml = `
+                <h3>🔍 What I found in your problem:</h3>
+                <p><strong>Type:</strong> ${analysis.operation_identified || 'Unknown'}</p>
+                <p><strong>Numbers:</strong> ${analysis.numbers_found ? analysis.numbers_found.join(', ') : 'None found'}</p>
+                <p><strong>Difficulty:</strong> ${analysis.difficulty_level || 'Unknown'}</p>
+                <p><strong>Original Problem:</strong> "${data.original_problem}"</p>
+            `;
+
+            // Guidance section
+            let guidanceHtml = '';
+            if (guidance.learning_strategy) {
+                guidanceHtml += `<h3>📖 Learning Strategy:</h3><p><strong>${guidance.learning_strategy}</strong></p>`;
+            }
+
+            if (guidance.step_by_step_hints && guidance.step_by_step_hints.length > 0) {
+                guidanceHtml += `
+                    <div class="steps-list">
+                        <h4>📋 Step-by-step hints:</h4>
+                        <ol>
+                            ${guidance.step_by_step_hints.map(step => `<li>${step}</li>`).join('')}
+                        </ol>
+                    </div>
+                `;
+            }
+
+            if (guidance.abacus_technique) {
+                guidanceHtml += `
+                    <div class="tip-box">
+                        <h4>🧮 Abacus Technique:</h4>
+                        <p>${guidance.abacus_technique}</p>
+                    </div>
+                `;
+            }
+
+            if (guidance.mental_math_trick) {
+                guidanceHtml += `
+                    <div class="tip-box">
+                        <h4>🧠 Mental Math Trick:</h4>
+                        <p>${guidance.mental_math_trick}</p>
+                    </div>
+                `;
+            }
+
+            // Learning reminders
+            if (data.learning_reminders && data.learning_reminders.length > 0) {
+                guidanceHtml += `
+                    <div class="steps-list">
+                        <h4>💡 Remember:</h4>
+                        <ul>
+                            ${data.learning_reminders.map(reminder => `<li>${reminder}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            document.getElementById('analysis').innerHTML = analysisHtml;
+            document.getElementById('guidance').innerHTML = guidanceHtml;
+            document.getElementById('encouragement').textContent = data.encouragement || "Keep practicing! You're doing great! 🌟";
+            document.getElementById('results').style.display = 'block';
+        }
+
+        // Display error messages
+        function displayError(data) {
+            let errorHtml = `<h3>🤔 ${data.error || 'Hmm, let me help you with this...'}</h3>`;
+
+            if (data.message) {
+                errorHtml += `<p><strong>What happened:</strong> ${data.message}</p>`;
+            }
+
+            if (data.suggestion) {
+                errorHtml += `<p><strong>Try this:</strong> ${data.suggestion}</p>`;
+            }
+
+            if (data.examples) {
+                errorHtml += `<p><strong>Example problems I can help with:</strong></p><ul>`;
+                data.examples.forEach(example => {
+                    errorHtml += `<li>${example}</li>`;
+                });
+                errorHtml += `</ul>`;
+            }
+
+            if (data.tips) {
+                errorHtml += `<p><strong>Tips:</strong></p><ul>`;
+                data.tips.forEach(tip => {
+                    errorHtml += `<li>${tip}</li>`;
+                });
+                errorHtml += `</ul>`;
+            }
+
+            document.getElementById('error').innerHTML = errorHtml;
+            document.getElementById('error').style.display = 'block';
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('mathProblem').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                solveProblem();
+            }
+        });
+
+        // Focus on input when page loads
+        window.addEventListener('load', function () {
+            document.getElementById('mathProblem').focus();
+        });
+    </script>
+</body>
+
+</html>
