@@ -4,7 +4,7 @@ An AI-powered educational tool that helps students learn mathematics through ste
 
 ## 🚀 Live Demo
 
-🔗 **[View Live Application](https://smart-homework-assistant-nehiz.netlify.app)** *(Update after Netlify deployment)*
+🔗 **[View Live Application](https://smart-homework-assistant.netlify.app)**
 
 ## 🏗️ Project Architecture
 
