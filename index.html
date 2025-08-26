@@ -55,6 +55,17 @@
             margin-bottom: 20px;
         }
 
+        .api-status {
+            background: #e6fffa;
+            border: 1px solid #38a169;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #2d3748;
+            font-size: 0.9em;
+        }
+
         .input-section {
             margin-bottom: 25px;
         }
@@ -301,6 +312,9 @@
             <h1>🧮 Smart Homework Assistant</h1>
             <div class="emoji-row">📚 ✨ 🎯 ✨ 📚</div>
             <p>I'll help you learn math step by step!</p>
+            <div class="api-status">
+                🌐 Connected to AWS Cloud API | 📊 Demo Access: 10 requests/day
+            </div>
         </div>
 
         <div class="input-section">
@@ -366,6 +380,13 @@
     </div>
 
     <script>
+        // AWS API Configuration
+        const API_CONFIG = {
+            endpoint: 'https://4ma1prp4x2.execute-api.us-east-1.amazonaws.com/dev/process-homework',
+            apiKey: 'demo_access_homework_2025', // Demo key for testing
+            requestsRemaining: 10 // Track demo usage
+        };
+
         // Set example problem
         function setExample(problem) {
             document.getElementById('mathProblem').value = problem;
@@ -396,10 +417,11 @@
             document.querySelector('.solve-btn').disabled = true;
 
             try {
-                const response = await fetch('http://localhost:5000/process-homework', {
+                const response = await fetch(API_CONFIG.endpoint, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-API-Key': API_CONFIG.apiKey
                     },
                     body: JSON.stringify({
                         problem_text: problemText
@@ -410,20 +432,43 @@
 
                 if (response.ok && data.success) {
                     displayResults(data);
+                    // Update remaining requests if using demo
+                    if (API_CONFIG.requestsRemaining > 0) {
+                        API_CONFIG.requestsRemaining--;
+                        updateApiStatus();
+                    }
                 } else {
                     displayError(data);
                 }
 
             } catch (error) {
+                console.error('API Error:', error);
                 displayError({
                     error: 'Connection Error',
-                    message: 'Could not connect to the homework assistant. Make sure the server is running!',
-                    suggestion: 'Check that your local server is running on http://localhost:5000'
+                    message: 'Could not connect to the Smart Homework Assistant API.',
+                    suggestion: 'Please check your internet connection and try again.',
+                    tips: [
+                        'Make sure you have a stable internet connection',
+                        'The API might be temporarily unavailable',
+                        'Try refreshing the page and trying again'
+                    ]
                 });
             } finally {
                 // Hide loading state
                 document.getElementById('loading').style.display = 'none';
                 document.querySelector('.solve-btn').disabled = false;
+            }
+        }
+
+        // Update API status display
+        function updateApiStatus() {
+            const statusElement = document.querySelector('.api-status');
+            if (API_CONFIG.requestsRemaining <= 0) {
+                statusElement.innerHTML = '🌐 Demo limit reached | Contact for full access';
+                statusElement.style.background = '#fed7d7';
+                statusElement.style.borderColor = '#e53e3e';
+            } else {
+                statusElement.innerHTML = `🌐 Connected to AWS Cloud API | 📊 Demo Access: ${API_CONFIG.requestsRemaining} requests remaining`;
             }
         }
 
@@ -433,16 +478,31 @@
             const guidance = data.educational_guidance || {};
 
             // Analysis section
-            const analysisHtml = `
+            let analysisHtml = `
                 <h3>🔍 What I found in your problem:</h3>
-                <p><strong>Type:</strong> ${analysis.operation_identified || 'Unknown'}</p>
-                <p><strong>Numbers:</strong> ${analysis.numbers_found ? analysis.numbers_found.join(', ') : 'None found'}</p>
-                <p><strong>Difficulty:</strong> ${analysis.difficulty_level || 'Unknown'}</p>
                 <p><strong>Original Problem:</strong> "${data.original_problem}"</p>
             `;
 
+            if (analysis.operation_identified) {
+                analysisHtml += `<p><strong>Operation Type:</strong> ${analysis.operation_identified}</p>`;
+            }
+
+            if (analysis.numbers_found && analysis.numbers_found.length > 0) {
+                analysisHtml += `<p><strong>Numbers Found:</strong> ${analysis.numbers_found.join(', ')}</p>`;
+            }
+
+            if (analysis.difficulty_level) {
+                analysisHtml += `<p><strong>Difficulty Level:</strong> ${analysis.difficulty_level}</p>`;
+            }
+
+            // Add timestamp for tracking
+            if (data.timestamp) {
+                analysisHtml += `<p><strong>Processed:</strong> ${new Date(data.timestamp).toLocaleString()}</p>`;
+            }
+
             // Guidance section
             let guidanceHtml = '';
+
             if (guidance.learning_strategy) {
                 guidanceHtml += `<h3>📖 Learning Strategy:</h3><p><strong>${guidance.learning_strategy}</strong></p>`;
             }
@@ -488,6 +548,15 @@
                 `;
             }
 
+            // Display final answer if provided
+            if (data.final_answer) {
+                guidanceHtml += `
+                    <div class="encouragement" style="margin: 15px 0; background: linear-gradient(45deg, #bee3f8, #90cdf4);">
+                        <h4>✨ Answer: ${data.final_answer}</h4>
+                    </div>
+                `;
+            }
+
             document.getElementById('analysis').innerHTML = analysisHtml;
             document.getElementById('guidance').innerHTML = guidanceHtml;
             document.getElementById('encouragement').textContent = data.encouragement || "Keep practicing! You're doing great! 🌟";
@@ -496,7 +565,7 @@
 
         // Display error messages
         function displayError(data) {
-            let errorHtml = `<h3>🤔 ${data.error || 'Hmm, let me help you with this...'}</h3>`;
+            let errorHtml = `<h3>🤔 ${data.error || 'Let me help you with this...'}</h3>`;
 
             if (data.message) {
                 errorHtml += `<p><strong>What happened:</strong> ${data.message}</p>`;
@@ -506,7 +575,16 @@
                 errorHtml += `<p><strong>Try this:</strong> ${data.suggestion}</p>`;
             }
 
-            if (data.examples) {
+            if (data.instructions) {
+                if (data.instructions.header_required) {
+                    errorHtml += `<p><strong>Authentication:</strong> API key required in ${data.instructions.header_required} header</p>`;
+                }
+                if (data.instructions.contact) {
+                    errorHtml += `<p><strong>For full access:</strong> ${data.instructions.contact}</p>`;
+                }
+            }
+
+            if (data.examples && Array.isArray(data.examples)) {
                 errorHtml += `<p><strong>Example problems I can help with:</strong></p><ul>`;
                 data.examples.forEach(example => {
                     errorHtml += `<li>${example}</li>`;
@@ -514,12 +592,23 @@
                 errorHtml += `</ul>`;
             }
 
-            if (data.tips) {
+            if (data.tips && Array.isArray(data.tips)) {
                 errorHtml += `<p><strong>Tips:</strong></p><ul>`;
                 data.tips.forEach(tip => {
                     errorHtml += `<li>${tip}</li>`;
                 });
                 errorHtml += `</ul>`;
+            }
+
+            // Special handling for rate limiting
+            if (data.demo_access) {
+                errorHtml += `
+                    <div style="background: #e6fffa; padding: 15px; border-radius: 10px; margin: 10px 0;">
+                        <p><strong>Demo Access Available:</strong></p>
+                        <p>Demo Key: <code>${data.demo_access.demo_key}</code></p>
+                        <p>Limits: ${data.demo_access.limits}</p>
+                    </div>
+                `;
             }
 
             document.getElementById('error').innerHTML = errorHtml;
@@ -537,6 +626,19 @@
         // Focus on input when page loads
         window.addEventListener('load', function () {
             document.getElementById('mathProblem').focus();
+            updateApiStatus();
+        });
+
+        // Test API connection on load
+        window.addEventListener('load', async function () {
+            try {
+                const response = await fetch(API_CONFIG.endpoint, {
+                    method: 'OPTIONS'
+                });
+                console.log('API CORS check:', response.ok ? 'SUCCESS' : 'FAILED');
+            } catch (error) {
+                console.log('API Connection Test:', error);
+            }
         });
     </script>
 </body>

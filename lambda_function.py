@@ -1,6 +1,6 @@
-# Smart Homework Assistant MVP - AWS Lambda with Authentication
+# Smart Homework Assistant MVP - AWS Lambda with Authentication (FIXED)
 # Enhanced version with API key authentication for production deployment
-# Author: Efehi- A Pioneer AI Academy Intern
+# Author: Pioneer AI Academy Intern
 
 import json
 import re
@@ -302,7 +302,7 @@ class MathProblemSolver:
             'steps': steps,
             'abacus_tip': self._get_abacus_tip('addition', num1, num2),
             'mental_math_trick': self._get_mental_math_trick('addition', num1, num2),
-            'encouragement': "Take your time and work step by step! 🌟"
+            'encouragement': "Take your time and work step by step!"
         }
     
     def _subtraction_hints(self, num1: int, num2: int) -> Dict[str, any]:
@@ -313,7 +313,7 @@ class MathProblemSolver:
                 'error': 'problem_check_needed',
                 'message': "Check your problem - you can't take away more than you have!",
                 'suggestion': f"Did you mean {num2} - {num1} instead?",
-                'encouragement': "Double-check the order of your numbers! 🔍"
+                'encouragement': "Double-check the order of your numbers!"
             }
         
         steps = []
@@ -354,7 +354,7 @@ class MathProblemSolver:
             'steps': steps,
             'abacus_tip': self._get_abacus_tip('subtraction', num1, num2),
             'mental_math_trick': self._get_mental_math_trick('subtraction', num1, num2),
-            'encouragement': "Remember: subtraction is the opposite of addition! 🔄"
+            'encouragement': "Remember: subtraction is the opposite of addition!"
         }
     
     def _multiplication_hints(self, num1: int, num2: int) -> Dict[str, any]:
@@ -398,7 +398,7 @@ class MathProblemSolver:
             'steps': steps,
             'abacus_tip': self._get_abacus_tip('multiplication', num1, num2),
             'mental_math_trick': self._get_mental_math_trick('multiplication', num1, num2),
-            'encouragement': "Multiplication is just fast addition! 🚀"
+            'encouragement': "Multiplication is just fast addition!"
         }
     
     def _division_hints(self, num1: int, num2: int) -> Dict[str, any]:
@@ -409,7 +409,7 @@ class MathProblemSolver:
                 'error': 'division_by_zero',
                 'message': "You cannot divide by zero!",
                 'suggestion': "Check your problem - the second number should not be zero",
-                'encouragement': "Math rules help keep everything working correctly! 📏"
+                'encouragement': "Math rules help keep everything working correctly!"
             }
         
         steps = []
@@ -426,4 +426,392 @@ class MathProblemSolver:
         
         elif num1 % num2 == 0:  # Divides evenly
             steps = [
-                f"Ask: How many groups of {num
+                f"Ask: How many groups of {num2} can I make from {num1}?",
+                f"Or: How many times does {num2} go into {num1}?",
+                "This should divide evenly (no remainder)",
+                f"Think of the multiplication table for {num2}"
+            ]
+            strategy = "Perfect division (no remainder)"
+        
+        else:  # Has remainder
+            quotient = num1 // num2
+            steps = [
+                f"Find how many complete groups of {num2} fit in {num1}",
+                f"That's {quotient} complete groups",
+                f"There will be {remainder} left over (remainder)",
+                f"Answer: {quotient} remainder {remainder}"
+            ]
+            strategy = "Division with remainders"
+        
+        return {
+            'operation': 'division',
+            'difficulty': 'medium',
+            'strategy': strategy,
+            'steps': steps,
+            'abacus_tip': self._get_abacus_tip('division', num1, num2),
+            'mental_math_trick': self._get_mental_math_trick('division', num1, num2),
+            'encouragement': "Division is about fair sharing!"
+        }
+    
+    def _assess_difficulty(self, num1: int, num2: int, operation: str) -> str:
+        """Assess problem difficulty for appropriate hint generation."""
+        if operation in ['addition', 'subtraction']:
+            if max(num1, num2) <= 10:
+                return 'easy'
+            elif max(num1, num2) <= 50:
+                return 'medium'
+            else:
+                return 'hard'
+        
+        elif operation == 'multiplication':
+            if max(num1, num2) <= 5:
+                return 'easy'
+            elif max(num1, num2) <= 10:
+                return 'medium'
+            else:
+                return 'hard'
+        
+        return 'medium'
+    
+    def _get_abacus_tip(self, operation: str, num1: int, num2: int) -> str:
+        """Generate abacus-specific learning tips."""
+        tips = {
+            'addition': [
+                "Use your abacus to show both numbers, then count all beads together",
+                "Remember: 5 bottom beads = 1 top bead for efficient counting",
+                "Start with the larger number on your abacus, then add the smaller"
+            ],
+            'subtraction': [
+                f"Start with {num1} on your abacus, then remove {num2} beads",
+                "Use the 'friends of 10' method - numbers that add to 10",
+                "Move beads away to show subtraction clearly"
+            ],
+            'multiplication': [
+                f"Make {num2} groups of {num1} beads each on your abacus",
+                "Count all the beads in all groups for your answer",
+                "Use repeated addition if multiplication is tricky"
+            ],
+            'division': [
+                f"Start with {num1} beads, try to make equal groups of {num2}",
+                "Count how many complete groups you can make",
+                "Any leftover beads are the remainder"
+            ]
+        }
+        
+        return tips.get(operation, ["Use your abacus to visualize the problem"])[0]
+    
+    def _get_mental_math_trick(self, operation: str, num1: int, num2: int) -> str:
+        """Generate mental math tricks and shortcuts."""
+        if operation == 'addition':
+            if num2 == 9:
+                return f"Quick trick: Add 10 to {num1}, then subtract 1"
+            elif num2 in [11, 12, 13, 14, 15]:
+                return f"Add 10 first ({num1} + 10), then add {num2 - 10}"
+            elif (num1 + num2) % 10 == 0:
+                return "Notice how these numbers make a nice round number!"
+        
+        elif operation == 'subtraction':
+            if num2 == 9:
+                return f"Quick trick: Subtract 10 from {num1}, then add 1"
+            elif num1 % 10 == 0:
+                return "Subtracting from round numbers is easier - break it down!"
+        
+        elif operation == 'multiplication':
+            if num2 == 2:
+                return "Multiplying by 2 is the same as doubling (adding the number to itself)"
+            elif num2 == 5:
+                return "Multiplying by 5: multiply by 10, then divide by 2"
+            elif num2 == 10:
+                return "Multiplying by 10: just add a zero to the end!"
+        
+        elif operation == 'division':
+            if num2 == 2:
+                return "Dividing by 2 is the same as finding half"
+            elif num2 == 10:
+                return "Dividing by 10: move the decimal point left (or remove a zero)"
+        
+        return "Look for patterns and shortcuts to make math easier!"
+    
+    # MISSING METHODS - These were causing the error
+    def _unknown_problem_help(self) -> Dict[str, any]:
+        """Help for unrecognized problems."""
+        return {
+            'operation': 'unknown',
+            'message': "I can help with basic math problems!",
+            'supported_operations': ['Addition (+)', 'Subtraction (-)', 'Multiplication (×)', 'Division (÷)'],
+            'examples': [
+                "25 + 17 = ?",
+                "What is 45 - 18?", 
+                "7 × 8",
+                "56 ÷ 7",
+                "Sarah has 20 candies and gives 5 to Tom. How many are left?"
+            ],
+            'tips': [
+                "Use clear numbers and operation symbols",
+                "I understand word problems too!",
+                "Make sure your problem has at least 2 numbers"
+            ],
+            'encouragement': "Try rephrasing your problem and I'll help you learn!"
+        }
+    
+    def _insufficient_numbers_help(self) -> Dict[str, any]:
+        """Help when not enough numbers are found."""
+        return {
+            'operation': 'incomplete',
+            'message': "I need at least 2 numbers to help with math problems",
+            'suggestion': "Make sure your problem includes the numbers you want to work with",
+            'examples': ["15 + 8", "20 - 7", "4 × 6"],
+            'encouragement': "Include the numbers in your problem and I'll help!"
+        }
+
+class EducationalResponseGenerator:
+    """
+    Generates age-appropriate educational responses that encourage learning.
+    """
+    
+    @staticmethod
+    def format_response(problem_text: str, operation: str, numbers: List[int], 
+                       hints: Dict[str, any], user_info: Dict = None) -> Dict[str, any]:
+        """
+        Format the final educational response with user customization.
+        
+        Args:
+            problem_text (str): Original problem
+            operation (str): Identified operation
+            numbers (List[int]): Extracted numbers
+            hints (Dict): Generated hints
+            user_info (Dict): User role and information
+            
+        Returns:
+            Dict: Complete educational response
+        """
+        
+        # Base response structure
+        response = {
+            'success': True,
+            'timestamp': datetime.utcnow().isoformat(),
+            'original_problem': problem_text,
+            'analysis': {
+                'operation_identified': operation,
+                'numbers_found': numbers,
+                'difficulty_level': hints.get('difficulty', 'unknown')
+            }
+        }
+        
+        # Add user context if available
+        if user_info:
+            response['user_context'] = {
+                'role': user_info.get('role', 'student'),
+                'customization_applied': True
+            }
+        
+        # Handle different response types
+        if operation == 'unknown':
+            response.update({
+                'success': False,
+                'help_message': hints['message'],
+                'supported_operations': hints['supported_operations'],
+                'examples': hints['examples'],
+                'tips': hints['tips']
+            })
+        
+        elif 'error' in hints:
+            response.update({
+                'success': False,
+                'error_type': hints['error'],
+                'error_message': hints['message'],
+                'suggestion': hints['suggestion']
+            })
+        
+        else:
+            # Successful problem identification
+            response.update({
+                'educational_guidance': {
+                    'learning_strategy': hints['strategy'],
+                    'step_by_step_hints': hints['steps'],
+                    'abacus_technique': hints['abacus_tip'],
+                    'mental_math_trick': hints['mental_math_trick']
+                },
+                'learning_reminders': [
+                    "Work through each step yourself",
+                    "Understanding the process is more important than the answer",
+                    "Practice makes perfect!",
+                    "Ask for help if you get stuck"
+                ],
+                'encouragement': hints['encouragement']
+            })
+            
+            # Add role-specific content
+            if 'teacher_notes' in hints:
+                response['teacher_notes'] = hints['teacher_notes']
+            if 'parent_tips' in hints:
+                response['parent_tips'] = hints['parent_tips']
+        
+        # Add educational footer
+        response['pi_and_beads_tip'] = "Remember: Math is like learning to use an abacus - practice and patience lead to mastery!"
+        
+        return response
+
+@require_auth
+def lambda_handler(event, context):
+    """
+    AWS Lambda handler for Smart Homework Assistant with authentication.
+    
+    This function processes math homework problems and returns educational hints
+    without giving direct answers, encouraging students to learn through guided discovery.
+    
+    Args:
+        event: Lambda event from API Gateway
+        context: Lambda runtime context
+        
+    Returns:
+        Dict: API Gateway response with educational guidance
+    """
+    
+    # CORS headers for web applications
+    cors_headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS, GET',
+        'Access-Control-Allow-Headers': 'Content-Type, X-API-Key, Authorization',
+        'Content-Type': 'application/json'
+    }
+    
+    # Handle CORS preflight requests
+    if event.get('httpMethod') == 'OPTIONS':
+        return {
+            'statusCode': 200,
+            'headers': cors_headers,
+            'body': json.dumps({'message': 'CORS preflight successful'})
+        }
+    
+    # Handle GET request for API info
+    if event.get('httpMethod') == 'GET':
+        return {
+            'statusCode': 200,
+            'headers': cors_headers,
+            'body': json.dumps({
+                'service': 'Smart Homework Assistant MVP (Enhanced)',
+                'version': '2.0.0',
+                'description': 'Educational AI assistant for elementary math problems with authentication',
+                'endpoints': {
+                    'POST /process-homework': 'Submit math problems for educational hints (requires API key)',
+                    'GET /': 'API information'
+                },
+                'authentication': {
+                    'required': True,
+                    'header': 'X-API-Key',
+                    'demo_key': 'demo_access_homework_2025'
+                },
+                'created_by': 'Pioneer AI Academy Intern',
+                'focus': 'Abacus and mental math education with role-based customization'
+            })
+        }
+    
+    try:
+        # Get user info from authentication
+        user_info = event.get('user_info', {})
+        user_role = user_info.get('role', 'student')
+        
+        # Parse request body
+        if not event.get('body'):
+            return {
+                'statusCode': 400,
+                'headers': cors_headers,
+                'body': json.dumps({
+                    'error': 'Missing request body',
+                    'required': 'problem_text',
+                    'example': {'problem_text': '25 + 17'}
+                })
+            }
+        
+        # Handle base64 encoded body
+        body = event['body']
+        if event.get('isBase64Encoded', False):
+            body = base64.b64decode(body).decode('utf-8')
+        
+        try:
+            request_data = json.loads(body)
+        except json.JSONDecodeError:
+            return {
+                'statusCode': 400,
+                'headers': cors_headers,
+                'body': json.dumps({
+                    'error': 'Invalid JSON format',
+                    'example': '{"problem_text": "25 + 17"}'
+                })
+            }
+        
+        # Validate required fields
+        if 'problem_text' not in request_data:
+            return {
+                'statusCode': 400,
+                'headers': cors_headers,
+                'body': json.dumps({
+                    'error': 'Missing problem_text field',
+                    'required_format': {'problem_text': 'Your math problem here'},
+                    'examples': [
+                        '25 + 17',
+                        'What is 45 - 18?',
+                        'I have 12 apples and eat 3. How many are left?'
+                    ]
+                })
+            }
+        
+        problem_text = request_data['problem_text'].strip()
+        
+        if not problem_text:
+            return {
+                'statusCode': 400,
+                'headers': cors_headers,
+                'body': json.dumps({
+                    'error': 'Empty problem text',
+                    'message': 'Please provide a math problem to solve'
+                })
+            }
+        
+        # Process the math problem
+        logger.info(f"Processing problem for {user_role}: {problem_text}")
+        
+        # Initialize solver with user role for customization
+        solver = MathProblemSolver(user_role=user_role)
+        
+        # Identify operation and extract numbers
+        operation, numbers = solver.identify_operation(problem_text)
+        
+        # Generate educational hints
+        hints = solver.generate_educational_hint(operation, numbers)
+        
+        # Format response with user customization
+        response_generator = EducationalResponseGenerator()
+        response_data = response_generator.format_response(
+            problem_text, operation, numbers, hints, user_info
+        )
+        
+        # Log successful processing with usage tracking
+        log_usage(event.get('headers', {}).get('x-api-key', ''), problem_text, True, user_info)
+        logger.info(f"Successfully processed {operation} problem with {len(numbers)} numbers for {user_role}")
+        
+        return {
+            'statusCode': 200,
+            'headers': cors_headers,
+            'body': json.dumps(response_data, default=str)
+        }
+        
+    except Exception as e:
+        # Log error for debugging
+        logger.error(f"Unexpected error processing homework: {str(e)}")
+        
+        # Log failed usage
+        user_info = event.get('user_info', {})
+        if 'problem_text' in locals():
+            log_usage(event.get('headers', {}).get('x-api-key', ''), problem_text, False, user_info)
+        
+        return {
+            'statusCode': 500,
+            'headers': cors_headers,
+            'body': json.dumps({
+                'error': 'Internal server error',
+                'details': str(e) if user_info.get('role') == 'admin' else 'Sorry, something went wrong. Please try again.',
+                'timestamp': datetime.utcnow().isoformat()
+            })
+        }
